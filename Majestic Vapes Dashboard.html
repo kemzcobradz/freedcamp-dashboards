@@ -48,10 +48,11 @@
   <h1>Majestic Vapes</h1>
   <a href="index.html">&larr; Back to All Campaigns</a>
 </div>
-<div class="last-updated">Last updated: Mar 12, 2026 at 7:51 PM</div>
+<div class="last-updated">Last updated: Mar 12, 2026 at 9:10 PM</div>
 
 <div class="kpi-row">
   <div class="kpi-card"><div class="kpi-value" id="kpiTotal">-</div><div class="kpi-label">Total Tasks</div></div>
+  <div class="kpi-card"><div class="kpi-value" id="kpiOverdue">-</div><div class="kpi-label">Overdue</div></div>
   <div class="kpi-card"><div class="kpi-value" id="kpiOverage">-</div><div class="kpi-label">Overage</div></div>
   <div class="kpi-card"><div class="kpi-value" id="kpiCompletion">-</div><div class="kpi-label">Completion</div></div>
   <div class="kpi-card"><div class="kpi-value" id="kpiCredits">-</div><div class="kpi-label">Total Credits</div></div>
@@ -155,12 +156,20 @@ function getFiltered() {
 }
 
 function updateKPIs(filtered) {
+  const today = new Date().toISOString().split('T')[0];
   const total = filtered.length;
   let completed = 0, totalCredits = 0, totalEstMin = 0;
   filtered.forEach(t => {
     if (completedStatuses.includes(t.status)) completed++;
     if (t.credits) totalCredits += parseFloat(t.credits) || 0;
     if (t.estMinutes) totalEstMin += parseFloat(t.estMinutes) || 0;
+  });
+  // Overdue: backlog + current (not planned), past due, not completed
+  let overdue = 0;
+  allTasks.forEach(t => {
+    const tl = (t.taskList || '').toLowerCase();
+    if (tl === 'planned') return;
+    if (t.dueDate && t.dueDate < today && !completedStatuses.includes(t.status)) overdue++;
   });
   const pct = total > 0 ? Math.round(completed / total * 1000) / 10 : 0;
   totalCredits = Math.round(totalCredits * 100) / 100;
@@ -169,6 +178,9 @@ function updateKPIs(filtered) {
   const ovSign = overage > 0 ? '+' : '';
 
   document.getElementById('kpiTotal').textContent = total;
+  const overdueEl = document.getElementById('kpiOverdue');
+  overdueEl.textContent = overdue;
+  overdueEl.style.color = overdue > 0 ? '#ef4444' : '#22c55e';
   const ovEl = document.getElementById('kpiOverage');
   ovEl.textContent = ovSign + overage;
   ovEl.style.color = overage > 0 ? '#ef4444' : '#22c55e';
