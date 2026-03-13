@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PSI Conversion Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .header h1 { font-size: 28px; font-weight: 700; }
+  .header a { color: #60a5fa; text-decoration: none; font-size: 14px; }
+  .header a:hover { text-decoration: underline; }
+  .last-updated { color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
+  .kpi-row { display: flex; gap: 16px; margin-bottom: 8px; }
+  .kpi-card { flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; text-align: center; }
+  .kpi-value { font-size: 32px; font-weight: 700; }
+  .kpi-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .budget-line { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
+  .charts-row { display: flex; gap: 16px; margin-bottom: 24px; }
+  .chart-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; }
+  .chart-card.wide { flex: 2; }
+  .chart-card.narrow { flex: 1; }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .chart-title { font-size: 16px; font-weight: 600; }
+  .toggle-btn { background: #334155; border: none; color: #e2e8f0; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+  .toggle-btn:hover { background: #475569; }
+  .filters { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filters input, .filters select { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+  .filters input { flex: 1; min-width: 200px; }
+  .filters select { min-width: 140px; }
+  table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; }
+  th { background: #334155; padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; }
+  td { padding: 10px 12px; border-top: 1px solid #1e293b; font-size: 13px; }
+  tr:nth-child(even) { background: #162032; }
+  tr:hover { background: #1e3a5f; }
+  .overdue { color: #ef4444; font-weight: 600; }
+  tr.parent-task { background: #2a1520 !important; }
+  tr.parent-task:hover { background: #3a1a2a !important; }
+  .filter-toggles { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+  .filter-toggles label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #94a3b8; cursor: pointer; }
+  .filter-toggles input[type="checkbox"] { accent-color: #3b82f6; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>PSI Conversion</h1>
+  <a href="index.html">&larr; Back to All Campaigns</a>
+</div>
+<div class="last-updated">Last updated: Mar 12, 2026 at 7:51 PM</div>
+
+<div class="kpi-row">
+  <div class="kpi-card"><div class="kpi-value" id="kpiTotal">-</div><div class="kpi-label">Total Tasks</div></div>
+  <div class="kpi-card"><div class="kpi-value" id="kpiOverage">-</div><div class="kpi-label">Overage</div></div>
+  <div class="kpi-card"><div class="kpi-value" id="kpiCompletion">-</div><div class="kpi-label">Completion</div></div>
+  <div class="kpi-card"><div class="kpi-value" id="kpiCredits">-</div><div class="kpi-label">Total Credits</div></div>
+  <div class="kpi-card"><div class="kpi-value" id="kpiHours">-</div><div class="kpi-label">Est. Hours</div></div>
+</div>
+<div class="budget-line">Monthly Budget: 7 credits</div>
+
+<div class="charts-row">
+  <div class="chart-card wide">
+    <div class="chart-header">
+      <span class="chart-title">Team Workload</span>
+      <button class="toggle-btn" onclick="toggleWorkload()">Switch to Credits</button>
+    </div>
+    <canvas id="workloadChart" height="200"></canvas>
+  </div>
+  <div class="chart-card narrow">
+    <div class="chart-header"><span class="chart-title">Task Status</span></div>
+    <canvas id="statusChart" height="200"></canvas>
+  </div>
+</div>
+
+<div class="filter-toggles">
+  <label><input type="checkbox" id="showBacklog" onchange="updateDashboard()"> Show Backlog</label>
+  <label><input type="checkbox" id="showPlanned" onchange="updateDashboard()"> Show Planned</label>
+</div>
+
+<div class="filters">
+  <input type="text" id="searchInput" placeholder="Search tasks..." oninput="updateDashboard()">
+  <select id="statusFilter" onchange="updateDashboard()"><option value="">All Statuses</option></select>
+  <select id="assigneeFilter" onchange="updateDashboard()"><option value="">All Assignees</option></select>
+  <select id="priorityFilter" onchange="updateDashboard()"><option value="">All Priorities</option></select>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Type</th><th>Subtask Of</th><th>Task List</th><th>Name</th><th>Assigned To</th><th>Priority</th><th>Status</th><th>Due Date</th><th>Month</th><th>Est Min</th><th>Credits</th></tr>
+  </thead>
+  <tbody id="taskTableBody"></tbody>
+</table>
+
+<script>
+const allTasks = [{"type": "Task", "subtaskOf": "", "taskList": "Backlog", "name": "Link Building - February", "assignedTo": "Aubrey", "priority": "None", "status": "Doing", "startDate": "2026-02-09", "dueDate": "2026-03-06", "dateCompleted": "", "month": "2 - Feb", "estMinutes": "360", "credits": "3"}, {"type": "Subtask", "subtaskOf": "Link Building - February", "taskList": "Backlog", "name": "Generate Articles", "assignedTo": "Aubrey", "priority": "None", "status": "Doing", "startDate": "2026-02-09", "dueDate": "2026-03-06", "dateCompleted": "", "month": "2 - Feb", "estMinutes": "120", "credits": "0"}, {"type": "Subtask", "subtaskOf": "Link Building - February", "taskList": "Backlog", "name": "Complete RD100 Campaign", "assignedTo": "Aubrey", "priority": "None", "status": "Ready to Start", "startDate": "2026-02-09", "dueDate": "2026-03-06", "dateCompleted": "", "month": "2 - Feb", "estMinutes": "120", "credits": "0"}, {"type": "Subtask", "subtaskOf": "Link Building - February", "taskList": "Backlog", "name": "Create 1 x DAS Campaign", "assignedTo": "Aubrey", "priority": "None", "status": "Doing", "startDate": "", "dueDate": "2026-03-06", "dateCompleted": "", "month": "2 - Feb", "estMinutes": "120", "credits": "0"}, {"type": "Task", "subtaskOf": "", "taskList": "Backlog", "name": "Create Content Updates for Main Wiring Harnesses Page", "assignedTo": "Chris C.", "priority": "None", "status": "Waiting - Client", "startDate": "", "dueDate": "2026-03-06", "dateCompleted": "", "month": "2 - Feb", "estMinutes": "180", "credits": "2"}, {"type": "Task", "subtaskOf": "", "taskList": "Backlog", "name": "Complete Redirects for Remaining Wiring Harness Pages", "assignedTo": "Farhan A.", "priority": "None", "status": "Don't Start", "startDate": "", "dueDate": "2026-03-06", "dateCompleted": "", "month": "2 - Feb", "estMinutes": "120", "credits": "2"}, {"type": "Task", "subtaskOf": "", "taskList": "Backlog", "name": "Index Past Link Building Campaigns", "assignedTo": "Asad M.", "priority": "None", "status": "Done", "startDate": "", "dueDate": "2026-03-06", "dateCompleted": "2026-03-10", "month": "2 - Feb", "estMinutes": "0", "credits": "1"}];
+const budget = 7;
+const completedStatuses = ['Done', 'Completed'];
+const inProgressStatuses = ['Doing', 'In Progress', 'Ready to Start', 'Waiting - Client', 'Waiting - Internal'];
+const assignees = ["Asad M.", "Aubrey", "Chris C.", "Farhan A."];
+const statuses = ["Doing", "Don't Start", "Done", "Ready to Start", "Waiting - Client"];
+const priorities = ["None"];
+
+// Populate filter dropdowns
+const sf = document.getElementById('statusFilter');
+statuses.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s || '(empty)'; sf.appendChild(o); });
+const af = document.getElementById('assigneeFilter');
+assignees.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; af.appendChild(o); });
+const pf = document.getElementById('priorityFilter');
+priorities.forEach(p => { const o = document.createElement('option'); o.value = p; o.textContent = p || '(empty)'; pf.appendChild(o); });
+
+// Charts (initialized once, updated dynamically)
+let showingEst = true;
+const workloadCtx = document.getElementById('workloadChart').getContext('2d');
+const workloadChart = new Chart(workloadCtx, {
+  type: 'bar',
+  data: { labels: [], datasets: [{ label: 'Est Minutes', data: [], backgroundColor: '#3b82f6', borderRadius: 4 }] },
+  options: {
+    indexAxis: 'y', responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+      y: { ticks: { color: '#e2e8f0' }, grid: { display: false } }
+    }
+  }
+});
+
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusChart = new Chart(statusCtx, {
+  type: 'doughnut',
+  data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }] },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 12 } } }
+  }
+});
+
+function getFiltered() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+  const assignee = document.getElementById('assigneeFilter').value;
+  const priority = document.getElementById('priorityFilter').value;
+  const showBacklog = document.getElementById('showBacklog').checked;
+  const showPlanned = document.getElementById('showPlanned').checked;
+  return allTasks.filter(t => {
+    const tl = t.taskList.toLowerCase();
+    if (!showBacklog && tl === 'backlog') return false;
+    if (!showPlanned && tl === 'planned') return false;
+    if (search && !t.name.toLowerCase().includes(search) && !t.taskList.toLowerCase().includes(search)) return false;
+    if (status && t.status !== status) return false;
+    if (assignee && t.assignedTo !== assignee) return false;
+    if (priority && t.priority !== priority) return false;
+    return true;
+  });
+}
+
+function updateKPIs(filtered) {
+  const total = filtered.length;
+  let completed = 0, totalCredits = 0, totalEstMin = 0;
+  filtered.forEach(t => {
+    if (completedStatuses.includes(t.status)) completed++;
+    if (t.credits) totalCredits += parseFloat(t.credits) || 0;
+    if (t.estMinutes) totalEstMin += parseFloat(t.estMinutes) || 0;
+  });
+  const pct = total > 0 ? Math.round(completed / total * 1000) / 10 : 0;
+  totalCredits = Math.round(totalCredits * 100) / 100;
+  const estHours = Math.round(totalEstMin / 60 * 10) / 10;
+  const overage = Math.round((totalCredits - budget) * 100) / 100;
+  const ovSign = overage > 0 ? '+' : '';
+
+  document.getElementById('kpiTotal').textContent = total;
+  const ovEl = document.getElementById('kpiOverage');
+  ovEl.textContent = ovSign + overage;
+  ovEl.style.color = overage > 0 ? '#ef4444' : '#22c55e';
+  const compEl = document.getElementById('kpiCompletion');
+  compEl.textContent = pct + '%';
+  compEl.style.color = pct >= 50 ? '#22c55e' : pct >= 25 ? '#f59e0b' : '#ef4444';
+  document.getElementById('kpiCredits').textContent = totalCredits;
+  document.getElementById('kpiHours').textContent = estHours + 'h';
+}
+
+function updateCharts(filtered) {
+  // Team workload
+  const tw = {};
+  filtered.forEach(t => {
+    const a = t.assignedTo || 'Unassigned';
+    if (!tw[a]) tw[a] = { estMinutes: 0, credits: 0 };
+    if (t.estMinutes) tw[a].estMinutes += parseFloat(t.estMinutes) || 0;
+    if (t.credits) tw[a].credits += parseFloat(t.credits) || 0;
+  });
+  const twLabels = Object.keys(tw);
+  const twEst = twLabels.map(k => tw[k].estMinutes);
+  const twCred = twLabels.map(k => tw[k].credits);
+  workloadChart.data.labels = twLabels;
+  workloadChart.data.datasets[0].data = showingEst ? twEst : twCred;
+  workloadChart.data.datasets[0].label = showingEst ? 'Est Minutes' : 'Credits';
+  workloadChart.data.datasets[0].backgroundColor = showingEst ? '#3b82f6' : '#8b5cf6';
+  workloadChart.update();
+
+  // Store for toggle
+  window._twEst = twEst;
+  window._twCred = twCred;
+
+  // Status distribution
+  const sd = { 'Completed': 0, 'In Progress': 0, 'No Progress': 0 };
+  filtered.forEach(t => {
+    if (completedStatuses.includes(t.status)) sd['Completed']++;
+    else if (inProgressStatuses.includes(t.status)) sd['In Progress']++;
+    else sd['No Progress']++;
+  });
+  const sdLabels = Object.keys(sd).filter(k => sd[k] > 0);
+  const sdValues = sdLabels.map(k => sd[k]);
+  const sdColors = sdLabels.map(k => k === 'Completed' ? '#22c55e' : k === 'In Progress' ? '#3b82f6' : '#64748b');
+  statusChart.data.labels = sdLabels;
+  statusChart.data.datasets[0].data = sdValues;
+  statusChart.data.datasets[0].backgroundColor = sdColors;
+  statusChart.update();
+}
+
+function renderTable(tasks) {
+  const tbody = document.getElementById('taskTableBody');
+  const today = new Date().toISOString().split('T')[0];
+  tbody.innerHTML = tasks.map(t => {
+    const isOverdue = t.dueDate && t.dueDate < today && !completedStatuses.includes(t.status);
+    const cls = isOverdue ? ' class="overdue"' : '';
+    const rowCls = t.type === 'Task' ? ' class="parent-task"' : '';
+    return `<tr${rowCls}><td>${t.type}</td><td>${t.subtaskOf}</td><td>${t.taskList}</td><td${cls}>${t.name}</td><td>${t.assignedTo}</td><td>${t.priority}</td><td>${t.status}</td><td${cls}>${t.dueDate}</td><td>${t.month}</td><td>${t.estMinutes}</td><td>${t.credits}</td></tr>`;
+  }).join('');
+}
+
+function toggleWorkload() {
+  showingEst = !showingEst;
+  workloadChart.data.datasets[0].label = showingEst ? 'Est Minutes' : 'Credits';
+  workloadChart.data.datasets[0].data = showingEst ? window._twEst : window._twCred;
+  workloadChart.data.datasets[0].backgroundColor = showingEst ? '#3b82f6' : '#8b5cf6';
+  workloadChart.update();
+  document.querySelector('.toggle-btn').textContent = showingEst ? 'Switch to Credits' : 'Switch to Est Minutes';
+}
+
+function updateDashboard() {
+  const filtered = getFiltered();
+  updateKPIs(filtered);
+  updateCharts(filtered);
+  renderTable(filtered);
+}
+
+updateDashboard();
+</script>
+</body>
+</html>
