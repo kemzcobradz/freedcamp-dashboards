@@ -7,258 +7,294 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
-.header { text-align: center; margin-bottom: 20px; }
-.header h1 { font-size: 1.8rem; color: #f8fafc; }
-.header .subtitle { color: #94a3b8; font-size: 0.9rem; margin-top: 4px; }
-.back-link { display: inline-block; margin-bottom: 15px; color: #60a5fa; text-decoration: none; font-size: 0.9rem; }
+body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; }
+.header { text-align: center; margin-bottom: 24px; }
+.header h1 { font-size: 28px; color: #f1f5f9; margin-bottom: 4px; }
+.header .updated { color: #94a3b8; font-size: 13px; margin-bottom: 8px; }
+.header .budget { color: #38bdf8; font-size: 15px; font-weight: 500; }
+.back-link { display: inline-block; margin-bottom: 16px; color: #38bdf8; text-decoration: none; font-size: 14px; }
 .back-link:hover { text-decoration: underline; }
-.kpi-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-.kpi-card { background: #1e293b; border-radius: 10px; padding: 16px 24px; text-align: center; min-width: 130px; flex: 1; max-width: 180px; }
-.kpi-value { font-size: 1.6rem; font-weight: 700; color: #f8fafc; }
-.kpi-label { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-.budget-note { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-bottom: 16px; }
-.toggle-row { display: flex; gap: 20px; justify-content: center; margin-bottom: 16px; }
-.toggle-row label { color: #94a3b8; font-size: 0.85rem; cursor: pointer; }
-.toggle-row input { margin-right: 4px; }
-.charts-row { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-.chart-container { background: #1e293b; border-radius: 10px; padding: 16px; flex: 1; min-width: 300px; position: relative; }
-.chart-container h3 { color: #f8fafc; font-size: 0.95rem; margin-bottom: 10px; }
-.chart-toggle { position: absolute; top: 12px; right: 12px; }
-.chart-toggle button { background: #334155; color: #94a3b8; border: none; padding: 4px 10px; font-size: 0.7rem; cursor: pointer; border-radius: 4px; margin-left: 4px; }
+.kpi-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; justify-content: center; }
+.kpi { background: #1e293b; border-radius: 12px; padding: 16px 24px; text-align: center; min-width: 140px; flex: 1; max-width: 200px; }
+.kpi .value { font-size: 28px; font-weight: 700; color: #f1f5f9; }
+.kpi .label { font-size: 12px; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi .value.red { color: #f87171; }
+.kpi .value.green { color: #4ade80; }
+.toggles { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; }
+.toggles label { color: #94a3b8; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.toggles input { cursor: pointer; }
+.charts-row { display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+.chart-container { background: #1e293b; border-radius: 12px; padding: 20px; flex: 1; min-width: 300px; }
+.chart-container h3 { color: #f1f5f9; font-size: 15px; margin-bottom: 12px; }
+.chart-toggle { display: flex; gap: 10px; margin-bottom: 10px; }
+.chart-toggle button { background: #334155; color: #94a3b8; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
 .chart-toggle button.active { background: #3b82f6; color: white; }
-.filters { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-.filters input, .filters select { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; }
+.filters { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filters input, .filters select { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
 .filters input { flex: 1; min-width: 200px; }
-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-thead th { background: #1e293b; color: #94a3b8; padding: 10px 8px; text-align: left; position: sticky; top: 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.filters select { min-width: 140px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: #1e293b; color: #94a3b8; padding: 10px 8px; text-align: left; position: sticky; top: 0; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
 tbody tr { border-bottom: 1px solid #1e293b; }
 tbody tr:hover { background: #1e293b; }
-tbody tr.parent-task { background: #2a1520; }
-tbody td { padding: 8px; }
-.status-badge { padding: 3px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
-.status-done { background: #065f46; color: #6ee7b7; }
-.status-doing { background: #1e3a5f; color: #60a5fa; }
-.status-waiting { background: #713f12; color: #fbbf24; }
-.status-nostart { background: #334155; color: #94a3b8; }
-.red { color: #f87171; }
-.green { color: #4ade80; }
+tbody tr.parent-row { background: #2a1520; }
+tbody tr.parent-row:hover { background: #351a28; }
+tbody td { padding: 8px; color: #cbd5e1; }
+.status-done { color: #4ade80; }
+.status-progress { color: #fbbf24; }
+.status-none { color: #94a3b8; }
+.table-wrapper { overflow-x: auto; border-radius: 12px; background: #0f172a; }
 </style>
 </head>
 <body>
 <a href="index.html" class="back-link">&larr; Back to Master Dashboard</a>
 <div class="header">
   <h1>Centre Vitalab</h1>
-  <div class="subtitle">Last updated: Mar 13, 2026 at 9:05 AM</div>
+  <div class="updated">Last updated: Mar 16, 2026 at 7:18 AM</div>
+  <div class="budget">Monthly Budget: 5 credits</div>
 </div>
+
 <div class="kpi-row">
-  <div class="kpi-card"><div class="kpi-value" id="kpiTotal">-</div><div class="kpi-label">Total Tasks</div></div>
-  <div class="kpi-card"><div class="kpi-value" id="kpiOverdue">-</div><div class="kpi-label">Overdue</div></div>
-  <div class="kpi-card"><div class="kpi-value" id="kpiOverage">-</div><div class="kpi-label">Overage</div></div>
-  <div class="kpi-card"><div class="kpi-value" id="kpiCompletion">-</div><div class="kpi-label">Completion</div></div>
-  <div class="kpi-card"><div class="kpi-value" id="kpiCredits">-</div><div class="kpi-label">Total Credits</div></div>
-  <div class="kpi-card"><div class="kpi-value" id="kpiHours">-</div><div class="kpi-label">Est. Hours</div></div>
+  <div class="kpi"><div class="value" id="kpi-total">0</div><div class="label">Total Tasks</div></div>
+  <div class="kpi"><div class="value" id="kpi-overdue">0</div><div class="label">Overdue</div></div>
+  <div class="kpi"><div class="value" id="kpi-overage">0</div><div class="label">Overage</div></div>
+  <div class="kpi"><div class="value" id="kpi-completion">0%</div><div class="label">Completion</div></div>
+  <div class="kpi"><div class="value" id="kpi-credits">0</div><div class="label">Total Credits</div></div>
+  <div class="kpi"><div class="value" id="kpi-hours">0</div><div class="label">Est. Hours</div></div>
 </div>
-<div class="budget-note">Monthly Budget: 5 credits</div>
-<div class="toggle-row">
-  <label><input type="checkbox" id="toggleBacklog" onchange="refresh()"> Show Backlog</label>
-  <label><input type="checkbox" id="togglePlanned" onchange="refresh()"> Show Planned</label>
+
+<div class="toggles">
+  <label><input type="checkbox" id="toggle-backlog"> Show Backlog</label>
+  <label><input type="checkbox" id="toggle-planned"> Show Planned</label>
 </div>
+
 <div class="charts-row">
   <div class="chart-container">
     <h3>Team Workload</h3>
     <div class="chart-toggle">
-      <button id="btnEstMin" class="active" onclick="setWorkloadMode('estMinutes')">Est Minutes</button>
-      <button id="btnCredits" onclick="setWorkloadMode('credits')">Credits</button>
+      <button class="active" onclick="setWorkloadMode('minutes')">Est Minutes</button>
+      <button onclick="setWorkloadMode('credits')">Credits</button>
     </div>
-    <canvas id="workloadChart"></canvas>
+    <canvas id="workloadChart" height="200"></canvas>
   </div>
   <div class="chart-container">
     <h3>Task Status</h3>
-    <canvas id="statusChart"></canvas>
+    <canvas id="statusChart" height="200"></canvas>
   </div>
 </div>
+
 <div class="filters">
-  <input type="text" id="searchBox" placeholder="Search tasks..." oninput="refresh()">
-  <select id="statusFilter" onchange="refresh()"><option value="">All Statuses</option></select>
-  <select id="assigneeFilter" onchange="refresh()"><option value="">All Assignees</option></select>
-  <select id="priorityFilter" onchange="refresh()"><option value="">All Priorities</option></select>
+  <input type="text" id="search" placeholder="Search tasks...">
+  <select id="filter-status"><option value="">All Statuses</option></select>
+  <select id="filter-assignee"><option value="">All Assignees</option></select>
+  <select id="filter-priority"><option value="">All Priorities</option></select>
 </div>
+
+<div class="table-wrapper">
 <table>
-<thead><tr><th>Type</th><th>Task List</th><th>Name</th><th>Assigned To</th><th>Priority</th><th>Status</th><th>Due Date</th><th>Month</th><th>Est Min</th><th>Credits</th></tr></thead>
-<tbody id="taskBody"></tbody>
+  <thead>
+    <tr>
+      <th>Type</th><th>Name</th><th>Subtask Of</th><th>Task List</th>
+      <th>Assignee</th><th>Priority</th><th>Status</th>
+      <th>Due Date</th><th>Completed</th><th>Month</th>
+      <th>Est Min</th><th>Credits</th>
+    </tr>
+  </thead>
+  <tbody id="task-tbody"></tbody>
 </table>
+</div>
 
 <script>
-const allTasks = [{"campaign": "Centre Vitalab", "type": "Task", "subtaskOf": "", "taskList": "Current Tasks", "name": "SEO Optimization Signals - Centre Vitalab (March)", "assignedTo": "Parvez", "priority": "Low", "status": "Ready to Start", "startDate": "2026-03-01", "dueDate": "2026-03-31", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "240", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "SEO Optimization Signals - Centre Vitalab (March)", "taskList": "Current Tasks", "name": "SEO Optimization Signals - Rosemont", "assignedTo": "Parvez", "priority": "Low", "status": "Ready to Start", "startDate": "2026-03-01", "dueDate": "2026-03-31", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "120", "credits": "2.5"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "SEO Optimization Signals - Centre Vitalab (March)", "taskList": "Current Tasks", "name": "SEO Optimization Signals - Dollard Des Ormeaux", "assignedTo": "Parvez", "priority": "Low", "status": "Ready to Start", "startDate": "2026-03-01", "dueDate": "2026-03-31", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "120", "credits": "2.5"}, {"campaign": "Centre Vitalab", "type": "Task", "subtaskOf": "", "taskList": "Current Tasks", "name": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Mont Royal", "assignedTo": "Aubrey", "priority": "None", "status": "Ready to Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "240", "credits": "1"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Mont Royal", "taskList": "Current Tasks", "name": "Write/Generate GBP Posts Content", "assignedTo": "Aubrey", "priority": "High", "status": "Ready to Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "60", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Mont Royal", "taskList": "Current Tasks", "name": "Create and Edit GBP Post Images", "assignedTo": "Aubrey", "priority": "High", "status": "Ready to Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "60", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Mont Royal", "taskList": "Current Tasks", "name": "Review GBP Post Copy", "assignedTo": "Aubrey", "priority": "High", "status": "Don't Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "15", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Mont Royal", "taskList": "Current Tasks", "name": "Set Geo-Tagged Images", "assignedTo": "Aubrey", "priority": "High", "status": "Don't Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "15", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Mont Royal", "taskList": "Current Tasks", "name": "Ensure UTM Parameters in Links", "assignedTo": "Aubrey", "priority": "None", "status": "Don't Start", "startDate": "2026-03-05", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "15", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Mont Royal", "taskList": "Current Tasks", "name": "Publish GBP Posts", "assignedTo": "Aubrey", "priority": "High", "status": "Don't Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "60", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Mont Royal", "taskList": "Current Tasks", "name": "Send GBP Post Copy to the Client for Review", "assignedTo": "Jess Jacinth Kem A.", "priority": "High", "status": "Don't Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "10", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Task", "subtaskOf": "", "taskList": "Current Tasks", "name": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Dollard Des Ormeaux", "assignedTo": "Jann Christopher G.", "priority": "Low", "status": "Ready to Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "240", "credits": "1"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Dollard Des Ormeaux", "taskList": "Current Tasks", "name": "Write/Generate GBP Posts Content", "assignedTo": "Jann Christopher G.", "priority": "High", "status": "Ready to Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "60", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Dollard Des Ormeaux", "taskList": "Current Tasks", "name": "Create and Edit GBP Post Images", "assignedTo": "Jann Christopher G.", "priority": "High", "status": "Ready to Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "60", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Dollard Des Ormeaux", "taskList": "Current Tasks", "name": "Review GBP Post Copy", "assignedTo": "Jann Christopher G.", "priority": "High", "status": "Don't Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "15", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Dollard Des Ormeaux", "taskList": "Current Tasks", "name": "Set Geo-Tagged Images", "assignedTo": "Jann Christopher G.", "priority": "High", "status": "Don't Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "15", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Dollard Des Ormeaux", "taskList": "Current Tasks", "name": "Ensure UTM Parameters in Links", "assignedTo": "Jann Christopher G.", "priority": "None", "status": "Don't Start", "startDate": "2026-03-05", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "15", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Dollard Des Ormeaux", "taskList": "Current Tasks", "name": "Publish GBP Posts", "assignedTo": "Jann Christopher G.", "priority": "High", "status": "Don't Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "60", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Subtask", "subtaskOf": "GBP Posts & Optimisation (8 x GBP Posts) \u2013 Dollard Des Ormeaux", "taskList": "Current Tasks", "name": "Send GBP Post Copy to the Client for Review", "assignedTo": "Jess Jacinth Kem A.", "priority": "High", "status": "Don't Start", "startDate": "2026-03-01", "dueDate": "2026-03-12", "dateCompleted": "", "month": "3 - Mar", "estMinutes": "10", "credits": "0"}, {"campaign": "Centre Vitalab", "type": "Task", "subtaskOf": "", "taskList": "Current Tasks", "name": "Analysis - Google Business Profile Audit - Mont-Royal", "assignedTo": "Idowu O.", "priority": "None", "status": "Ready to Start", "startDate": "", "dueDate": "2026-03-13", "dateCompleted": "", "month": "0 - Unassigned", "estMinutes": "120", "credits": ""}];
-const budget = 5;
-const completedStatuses = ["Done", "Completed"];
-let workloadMode = 'estMinutes';
+const ALL_TASKS = [{id:"69845875",title:"SEO Optimization Signals - Centre Vitalab (March)",type:"Task",parentName:"",taskList:"Current Tasks",assignee:"Parvez",priority:"Low",status:"Ready to Start",statusCat:"In Progress",startDate:"2026-03-01",dueDate:"2026-03-31",completedDate:"",month:"3 - Mar",estMinutes:240.0,credits:0.0},
+{id:"69845876",title:"SEO Optimization Signals - Rosemont",type:"Subtask",parentName:"SEO Optimization Signals - Centre Vitalab (March)",taskList:"Current Tasks",assignee:"Parvez",priority:"Low",status:"Ready to Start",statusCat:"In Progress",startDate:"2026-03-01",dueDate:"2026-03-31",completedDate:"",month:"3 - Mar",estMinutes:120.0,credits:2.5},
+{id:"69845877",title:"SEO Optimization Signals - Dollard Des Ormeaux",type:"Subtask",parentName:"SEO Optimization Signals - Centre Vitalab (March)",taskList:"Current Tasks",assignee:"Parvez",priority:"Low",status:"Ready to Start",statusCat:"In Progress",startDate:"2026-03-01",dueDate:"2026-03-31",completedDate:"",month:"3 - Mar",estMinutes:120.0,credits:2.5},
+{id:"69845893",title:"GBP Posts & Optimisation (8 x GBP Posts) – Mont Royal",type:"Task",parentName:"",taskList:"Current Tasks",assignee:"Aubrey",priority:"None",status:"Ready to Start",statusCat:"In Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:240.0,credits:1.0},
+{id:"69845894",title:"Write/Generate GBP Posts Content",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Mont Royal",taskList:"Current Tasks",assignee:"Aubrey",priority:"High",status:"Ready to Start",statusCat:"In Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:60.0,credits:0.0},
+{id:"69845895",title:"Create and Edit GBP Post Images",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Mont Royal",taskList:"Current Tasks",assignee:"Aubrey",priority:"High",status:"Ready to Start",statusCat:"In Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:60.0,credits:0.0},
+{id:"69845896",title:"Review GBP Post Copy",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Mont Royal",taskList:"Current Tasks",assignee:"Aubrey",priority:"High",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:15.0,credits:0.0},
+{id:"69845897",title:"Set Geo-Tagged Images",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Mont Royal",taskList:"Current Tasks",assignee:"Aubrey",priority:"High",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:15.0,credits:0.0},
+{id:"69888618",title:"Ensure UTM Parameters in Links",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Mont Royal",taskList:"Current Tasks",assignee:"Aubrey",priority:"None",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-05",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:15.0,credits:0.0},
+{id:"69845898",title:"Publish GBP Posts",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Mont Royal",taskList:"Current Tasks",assignee:"Aubrey",priority:"High",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:60.0,credits:0.0},
+{id:"69845899",title:"Send GBP Post Copy to the Client for Review",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Mont Royal",taskList:"Current Tasks",assignee:"Jess Jacinth Kem A.",priority:"High",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:10.0,credits:0.0},
+{id:"69845901",title:"GBP Posts & Optimisation (8 x GBP Posts) – Dollard Des Ormeaux",type:"Task",parentName:"",taskList:"Current Tasks",assignee:"Jann Christopher G.",priority:"Low",status:"Ready to Start",statusCat:"In Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:240.0,credits:1.0},
+{id:"69845902",title:"Write/Generate GBP Posts Content",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Dollard Des Ormeaux",taskList:"Current Tasks",assignee:"Jann Christopher G.",priority:"High",status:"Ready to Start",statusCat:"In Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:60.0,credits:0.0},
+{id:"69845903",title:"Create and Edit GBP Post Images",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Dollard Des Ormeaux",taskList:"Current Tasks",assignee:"Jann Christopher G.",priority:"High",status:"Ready to Start",statusCat:"In Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:60.0,credits:0.0},
+{id:"69845904",title:"Review GBP Post Copy",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Dollard Des Ormeaux",taskList:"Current Tasks",assignee:"Jann Christopher G.",priority:"High",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:15.0,credits:0.0},
+{id:"69845905",title:"Set Geo-Tagged Images",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Dollard Des Ormeaux",taskList:"Current Tasks",assignee:"Jann Christopher G.",priority:"High",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:15.0,credits:0.0},
+{id:"69888599",title:"Ensure UTM Parameters in Links",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Dollard Des Ormeaux",taskList:"Current Tasks",assignee:"Jann Christopher G.",priority:"None",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-05",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:15.0,credits:0.0},
+{id:"69845906",title:"Publish GBP Posts",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Dollard Des Ormeaux",taskList:"Current Tasks",assignee:"Jann Christopher G.",priority:"High",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:60.0,credits:0.0},
+{id:"69845907",title:"Send GBP Post Copy to the Client for Review",type:"Subtask",parentName:"GBP Posts & Optimisation (8 x GBP Posts) – Dollard Des Ormeaux",taskList:"Current Tasks",assignee:"Jess Jacinth Kem A.",priority:"High",status:"Don\'t Start",statusCat:"No Progress",startDate:"2026-03-01",dueDate:"2026-03-12",completedDate:"",month:"3 - Mar",estMinutes:10.0,credits:0.0},
+{id:"70065906",title:"Analysis - Google Business Profile Audit - Mont-Royal",type:"Task",parentName:"",taskList:"Current Tasks",assignee:"Idowu O.",priority:"None",status:"Done",statusCat:"Completed",startDate:"",dueDate:"2026-03-13",completedDate:"2026-03-13",month:"0 - Unassigned",estMinutes:120.0,credits:0}];
+const BUDGET = 5;
+const TODAY = "2026-03-16";
+
+let workloadMode = 'minutes';
 let workloadChart, statusChart;
 
-function getFiltered() {
-  const showBacklog = document.getElementById('toggleBacklog').checked;
-  const showPlanned = document.getElementById('togglePlanned').checked;
-  const search = document.getElementById('searchBox').value.toLowerCase();
-  const statusF = document.getElementById('statusFilter').value;
-  const assigneeF = document.getElementById('assigneeFilter').value;
-  const priorityF = document.getElementById('priorityFilter').value;
+function isBacklog(t) { return t.taskList.toLowerCase().includes('backlog'); }
+function isPlanned(t) { return t.taskList.toLowerCase().includes('planned'); }
+function isCurrent(t) { return !isBacklog(t) && !isPlanned(t); }
 
-  return allTasks.filter(t => {
-    const tl = (t.taskList || '').toLowerCase();
-    if (!showBacklog && tl === 'backlog') return false;
-    if (!showPlanned && tl === 'planned') return false;
-    if (search && !t.name.toLowerCase().includes(search) && !(t.assignedTo||'').toLowerCase().includes(search)) return false;
-    if (statusF && t.status !== statusF) return false;
-    if (assigneeF && (t.assignedTo||'') !== assigneeF) return false;
-    if (priorityF && t.priority !== priorityF) return false;
+function getFilteredTasks() {
+  const showBacklog = document.getElementById('toggle-backlog').checked;
+  const showPlanned = document.getElementById('toggle-planned').checked;
+  return ALL_TASKS.filter(t => {
+    if (isBacklog(t) && !showBacklog) return false;
+    if (isPlanned(t) && !showPlanned) return false;
     return true;
   });
 }
 
-function updateKPIs(filtered) {
-  const today = new Date().toISOString().split('T')[0];
-  const total = filtered.length;
-  let completed = 0, totalCredits = 0, totalEstMin = 0;
-  filtered.forEach(t => {
-    if (completedStatuses.includes(t.status)) completed++;
-    if (t.credits) totalCredits += parseFloat(t.credits) || 0;
-    if (t.estMinutes) totalEstMin += parseFloat(t.estMinutes) || 0;
-  });
-
-  // Overdue: backlog + current (not planned), past due, not completed - ALWAYS from allTasks
-  let overdue = 0;
-  allTasks.forEach(t => {
-    const tl = (t.taskList || '').toLowerCase();
-    if (tl === 'planned') return;
-    if (t.dueDate && t.dueDate < today && !completedStatuses.includes(t.status)) overdue++;
-  });
-
-  const overage = totalCredits - budget;
-  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  document.getElementById('kpiTotal').textContent = total;
-  const overdueEl = document.getElementById('kpiOverdue');
-  overdueEl.textContent = overdue;
-  overdueEl.className = 'kpi-value ' + (overdue > 0 ? 'red' : 'green');
-  const overageEl = document.getElementById('kpiOverage');
-  overageEl.textContent = (overage >= 0 ? '+' : '') + overage.toFixed(1);
-  overageEl.className = 'kpi-value ' + (overage > 0 ? 'red' : 'green');
-  document.getElementById('kpiCompletion').textContent = pct + '%';
-  document.getElementById('kpiCredits').textContent = totalCredits.toFixed(1);
-  document.getElementById('kpiHours').textContent = (totalEstMin / 60).toFixed(1);
+// Overdue: tasks from Backlog + Current (NOT Planned) with dueDate < today and not Completed
+function getOverdueCount() {
+  return ALL_TASKS.filter(t => {
+    if (isPlanned(t)) return false;
+    if (t.statusCat === 'Completed') return false;
+    if (!t.dueDate) return false;
+    return t.dueDate < TODAY;
+  }).length;
 }
 
-function updateCharts(filtered) {
-  // Workload by assignee
-  const workloadMap = {};
-  filtered.forEach(t => {
-    const who = t.assignedTo || 'Unassigned';
-    if (!workloadMap[who]) workloadMap[who] = 0;
-    const val = workloadMode === 'estMinutes' ? (parseFloat(t.estMinutes) || 0) : (parseFloat(t.credits) || 0);
-    workloadMap[who] += val;
+function updateKPIs() {
+  const tasks = getFilteredTasks();
+  const total = tasks.length;
+  const completed = tasks.filter(t => t.statusCat === 'Completed').length;
+  const totalCredits = tasks.reduce((s, t) => s + t.credits, 0);
+  const totalMinutes = tasks.reduce((s, t) => s + t.estMinutes, 0);
+  const overage = totalCredits - BUDGET;
+  const overdue = getOverdueCount();
+
+  document.getElementById('kpi-total').textContent = total;
+
+  const overdueEl = document.getElementById('kpi-overdue');
+  overdueEl.textContent = overdue;
+  overdueEl.className = 'value ' + (overdue > 0 ? 'red' : 'green');
+
+  const overageEl = document.getElementById('kpi-overage');
+  overageEl.textContent = (overage >= 0 ? '+' : '') + overage.toFixed(1);
+  overageEl.className = 'value ' + (overage > 0 ? 'red' : 'green');
+
+  document.getElementById('kpi-completion').textContent = total > 0 ? Math.round((completed / total) * 100) + '%' : '0%';
+  document.getElementById('kpi-credits').textContent = totalCredits.toFixed(1);
+  document.getElementById('kpi-hours').textContent = (totalMinutes / 60).toFixed(1);
+}
+
+function updateCharts() {
+  const tasks = getFilteredTasks();
+
+  // Workload chart
+  const assigneeMap = {};
+  tasks.forEach(t => {
+    if (!t.assignee) return;
+    if (!assigneeMap[t.assignee]) assigneeMap[t.assignee] = {minutes: 0, credits: 0};
+    assigneeMap[t.assignee].minutes += t.estMinutes;
+    assigneeMap[t.assignee].credits += t.credits;
   });
-  const wLabels = Object.keys(workloadMap).sort((a,b) => workloadMap[b] - workloadMap[a]);
-  const wData = wLabels.map(l => workloadMap[l]);
+
+  const assignees = Object.keys(assigneeMap).sort();
+  const wData = assignees.map(a => workloadMode === 'minutes' ? assigneeMap[a].minutes : assigneeMap[a].credits);
 
   if (workloadChart) workloadChart.destroy();
   workloadChart = new Chart(document.getElementById('workloadChart'), {
     type: 'bar',
     data: {
-      labels: wLabels,
-      datasets: [{ data: wData, backgroundColor: '#3b82f6', borderRadius: 4 }]
+      labels: assignees,
+      datasets: [{ label: workloadMode === 'minutes' ? 'Est Minutes' : 'Credits', data: wData, backgroundColor: '#3b82f6', borderRadius: 4 }]
     },
     options: {
       indexAxis: 'y',
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
-        y: { ticks: { color: '#e2e8f0', font: { size: 11 } }, grid: { display: false } }
+        x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+        y: { grid: { display: false }, ticks: { color: '#e2e8f0', font: { size: 11 } } }
       }
     }
   });
 
-  // Status doughnut
-  const statusMap = {};
-  filtered.forEach(t => {
-    const s = t.status || 'Not Started';
-    statusMap[s] = (statusMap[s] || 0) + 1;
-  });
-  const sLabels = Object.keys(statusMap);
-  const sData = sLabels.map(l => statusMap[l]);
-  const colors = sLabels.map(s => {
-    if (completedStatuses.includes(s)) return '#4ade80';
-    if (['Doing','In Progress','Ready to Start'].includes(s)) return '#3b82f6';
-    if (s.includes('Waiting')) return '#fbbf24';
-    return '#64748b';
-  });
+  // Status chart
+  const statusCounts = { 'Completed': 0, 'In Progress': 0, 'No Progress': 0 };
+  tasks.forEach(t => { statusCounts[t.statusCat] = (statusCounts[t.statusCat] || 0) + 1; });
 
   if (statusChart) statusChart.destroy();
   statusChart = new Chart(document.getElementById('statusChart'), {
     type: 'doughnut',
     data: {
-      labels: sLabels,
-      datasets: [{ data: sData, backgroundColor: colors }]
+      labels: ['Completed', 'In Progress', 'No Progress'],
+      datasets: [{ data: [statusCounts['Completed'], statusCounts['In Progress'], statusCounts['No Progress']], backgroundColor: ['#4ade80', '#fbbf24', '#94a3b8'] }]
     },
     options: {
       responsive: true,
-      plugins: {
-        legend: { position: 'right', labels: { color: '#e2e8f0', font: { size: 11 } } }
-      }
+      plugins: { legend: { position: 'bottom', labels: { color: '#e2e8f0', padding: 12 } } }
     }
   });
 }
 
-function updateTable(filtered) {
-  const tbody = document.getElementById('taskBody');
-  let html = '';
-  filtered.forEach(t => {
-    const isParent = t.type === 'Task';
-    const rowClass = isParent ? 'parent-task' : '';
-    let statusClass = 'status-nostart';
-    if (completedStatuses.includes(t.status)) statusClass = 'status-done';
-    else if (['Doing','In Progress','Ready to Start'].includes(t.status)) statusClass = 'status-doing';
-    else if ((t.status||'').includes('Waiting')) statusClass = 'status-waiting';
+function updateTable() {
+  const tasks = getFilteredTasks();
+  const search = document.getElementById('search').value.toLowerCase();
+  const statusFilter = document.getElementById('filter-status').value;
+  const assigneeFilter = document.getElementById('filter-assignee').value;
+  const priorityFilter = document.getElementById('filter-priority').value;
 
-    html += `<tr class="${rowClass}">
-      <td>${t.type}</td><td>${t.taskList}</td><td>${t.name}</td>
-      <td>${t.assignedTo || '<span style="color:#64748b">Unassigned</span>'}</td>
-      <td>${t.priority}</td>
-      <td><span class="status-badge ${statusClass}">${t.status || 'Not Started'}</span></td>
-      <td>${t.dueDate}</td><td>${t.month}</td>
+  const filtered = tasks.filter(t => {
+    if (search && !t.title.toLowerCase().includes(search) && !t.assignee.toLowerCase().includes(search)) return false;
+    if (statusFilter && t.status !== statusFilter) return false;
+    if (assigneeFilter && t.assignee !== assigneeFilter) return false;
+    if (priorityFilter && t.priority !== priorityFilter) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('task-tbody');
+  tbody.innerHTML = filtered.map(t => {
+    const rowClass = t.type === 'Task' ? ' class="parent-row"' : '';
+    const statusClass = t.statusCat === 'Completed' ? 'status-done' : t.statusCat === 'In Progress' ? 'status-progress' : 'status-none';
+    return `<tr${rowClass}>
+      <td>${t.type}</td><td>${t.title}</td><td>${t.parentName}</td><td>${t.taskList}</td>
+      <td>${t.assignee}</td><td>${t.priority}</td><td class="${statusClass}">${t.status}</td>
+      <td>${t.dueDate}</td><td>${t.completedDate}</td><td>${t.month}</td>
       <td>${t.estMinutes}</td><td>${t.credits}</td>
     </tr>`;
-  });
-  tbody.innerHTML = html;
+  }).join('');
+}
+
+function populateFilters() {
+  const statuses = [...new Set(ALL_TASKS.map(t => t.status))].filter(Boolean).sort();
+  const assignees = [...new Set(ALL_TASKS.map(t => t.assignee))].filter(Boolean).sort();
+  const priorities = [...new Set(ALL_TASKS.map(t => t.priority))].filter(Boolean).sort();
+
+  const statusSel = document.getElementById('filter-status');
+  statuses.forEach(s => { const o = document.createElement('option'); o.value = s; o.text = s; statusSel.add(o); });
+
+  const assigneeSel = document.getElementById('filter-assignee');
+  assignees.forEach(a => { const o = document.createElement('option'); o.value = a; o.text = a; assigneeSel.add(o); });
+
+  const prioritySel = document.getElementById('filter-priority');
+  priorities.forEach(p => { const o = document.createElement('option'); o.value = p; o.text = p; prioritySel.add(o); });
 }
 
 function setWorkloadMode(mode) {
   workloadMode = mode;
-  document.getElementById('btnEstMin').className = mode === 'estMinutes' ? 'active' : '';
-  document.getElementById('btnCredits').className = mode === 'credits' ? 'active' : '';
-  refresh();
-}
-
-function populateFilters() {
-  const statuses = [...new Set(allTasks.map(t => t.status).filter(Boolean))].sort();
-  const assignees = [...new Set(allTasks.map(t => t.assignedTo).filter(Boolean))].sort();
-  const priorities = [...new Set(allTasks.map(t => t.priority).filter(Boolean))].sort();
-  const sf = document.getElementById('statusFilter');
-  statuses.forEach(s => { const o = document.createElement('option'); o.value = s; o.text = s; sf.add(o); });
-  const af = document.getElementById('assigneeFilter');
-  assignees.forEach(a => { const o = document.createElement('option'); o.value = a; o.text = a; af.add(o); });
-  const pf = document.getElementById('priorityFilter');
-  priorities.forEach(p => { const o = document.createElement('option'); o.value = p; o.text = p; pf.add(o); });
+  document.querySelectorAll('.chart-toggle button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  updateCharts();
 }
 
 function refresh() {
-  const filtered = getFiltered();
-  updateKPIs(filtered);
-  updateCharts(filtered);
-  updateTable(filtered);
+  updateKPIs();
+  updateCharts();
+  updateTable();
 }
 
+// Event listeners
+document.getElementById('toggle-backlog').addEventListener('change', refresh);
+document.getElementById('toggle-planned').addEventListener('change', refresh);
+document.getElementById('search').addEventListener('input', updateTable);
+document.getElementById('filter-status').addEventListener('change', updateTable);
+document.getElementById('filter-assignee').addEventListener('change', updateTable);
+document.getElementById('filter-priority').addEventListener('change', updateTable);
+
+// Initialize
 populateFilters();
 refresh();
 </script>
